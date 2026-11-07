@@ -1,0 +1,25 @@
+name: self-test
+on: [push, pull_request, workflow_dispatch]
+jobs:
+  finds-planted-gap:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - id: lintsure
+        uses: ./
+        continue-on-error: true
+        with: { path: test/sample, fail-on: gap }
+      - name: The planted gap must fail the step and appear in the report
+        run: |
+          test "${{ steps.lintsure.outcome }}" = "failure"
+          grep -q '"ruleId": "pii.logged"' lintsure-report.json
+          grep -q 'not an audit' lintsure-report.md
+  report-only:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - id: lintsure
+        uses: ./
+        with: { path: test/sample, fail-on: none, frameworks: gdpr }
+      - name: fail-on none must pass and keep only GDPR
+        run: node -e 'const r=require("./lintsure-report.json"); if (JSON.stringify(r.frameworks)!==JSON.stringify(["gdpr"])||!r.disclaimer) process.exit(1)'

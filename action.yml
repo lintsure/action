@@ -1,26 +1,37 @@
 name: Lintsure
-description: Compliance checks for the code your AI writes. Never uploads your code.
+description: Readiness checks for the code your AI writes (EU AI Act, GDPR, SOC 2, ISO 27001). Never uploads your code. Not an audit or legal advice.
 branding: { icon: check-circle, color: green }
 inputs:
   path: { description: Folder to check, default: "." }
-  frameworks: { description: "Comma list: gdpr,soc2,iso-27001,eu-ai-act (default: all)", default: "" }
+  frameworks: { description: "Comma list: eu-ai-act,gdpr,soc2,iso-27001. Empty uses lintsure.config.yaml, or all available.", default: "" }
   fail-on: { description: "gap, partial, or none", default: "gap" }
-  version: { description: Lintsure CLI version, default: "latest" }
+  ref: { description: "Git ref of github.com/lintsure/lintsure to run (branch, tag or commit)", default: "main" }
+outputs:
+  report: { description: Path to lintsure-report.json, value: "${{ steps.run.outputs.report }}" }
 runs:
   using: composite
   steps:
     - uses: actions/setup-node@v4
       with: { node-version: 22 }
+    # Build the engine from source, so the action works before and after the npm release.
     - shell: bash
+      env: { LS_REF: "${{ inputs.ref }}" }
+      run: |
+        git clone --quiet --depth 1 --branch "$LS_REF" https://github.com/lintsure/lintsure.git "$RUNNER_TEMP/lintsure" \
+          || { git clone --quiet https://github.com/lintsure/lintsure.git "$RUNNER_TEMP/lintsure" && git -C "$RUNNER_TEMP/lintsure" checkout --quiet "$LS_REF"; }
+        npm ci --prefix "$RUNNER_TEMP/lintsure" --silent
+        npm run build --prefix "$RUNNER_TEMP/lintsure" --silent
+    - id: run
+      shell: bash
       env:
         LS_PATH: ${{ inputs.path }}
         LS_FW: ${{ inputs.frameworks }}
         LS_FAIL: ${{ inputs.fail-on }}
-        LS_VER: ${{ inputs.version }}
       run: |
         args=(scan "$LS_PATH" --json)
         [ -n "$LS_FW" ] && args+=(--framework "$LS_FW")
         [ "$LS_FAIL" != "none" ] && args+=(--fail-on "$LS_FAIL")
-        set +e; npx -y "lintsure@$LS_VER" "${args[@]}"; code=$?; set -e
+        set +e; node "$RUNNER_TEMP/lintsure/packages/cli/dist/src/index.js" "${args[@]}"; code=$?; set -e
         cat lintsure-report.md >> "$GITHUB_STEP_SUMMARY"
+        echo "report=$PWD/lintsure-report.json" >> "$GITHUB_OUTPUT"
         exit $code
