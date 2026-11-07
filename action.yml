@@ -1,0 +1,26 @@
+name: Lintsure
+description: Compliance checks for the code your AI writes. Never uploads your code.
+branding: { icon: check-circle, color: green }
+inputs:
+  path: { description: Folder to check, default: "." }
+  frameworks: { description: "Comma list: gdpr,soc2,iso-27001,eu-ai-act (default: all)", default: "" }
+  fail-on: { description: "gap, partial, or none", default: "gap" }
+  version: { description: Lintsure CLI version, default: "latest" }
+runs:
+  using: composite
+  steps:
+    - uses: actions/setup-node@v4
+      with: { node-version: 22 }
+    - shell: bash
+      env:
+        LS_PATH: ${{ inputs.path }}
+        LS_FW: ${{ inputs.frameworks }}
+        LS_FAIL: ${{ inputs.fail-on }}
+        LS_VER: ${{ inputs.version }}
+      run: |
+        args=(scan "$LS_PATH" --json)
+        [ -n "$LS_FW" ] && args+=(--framework "$LS_FW")
+        [ "$LS_FAIL" != "none" ] && args+=(--fail-on "$LS_FAIL")
+        set +e; npx -y "lintsure@$LS_VER" "${args[@]}"; code=$?; set -e
+        cat lintsure-report.md >> "$GITHUB_STEP_SUMMARY"
+        exit $code
