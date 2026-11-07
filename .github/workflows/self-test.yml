@@ -23,3 +23,15 @@ jobs:
         with: { path: test/sample, fail-on: none, frameworks: gdpr }
       - name: fail-on none must pass and keep only GDPR
         run: node -e 'const r=require("./lintsure-report.json"); if (JSON.stringify(r.frameworks)!==JSON.stringify(["gdpr"])||!r.disclaimer) process.exit(1)'
+  baseline-new-only:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - id: lintsure
+        uses: ./
+        with: { path: test/baselined, fail-on: gap, new-only: "true", sarif: "true" }
+      - name: Old findings in the baseline must not fail; reports must say nothing is new and carry no code
+        run: |
+          node -e 'const r=require("./lintsure-report.json"); if (!r.baseline || r.baseline.newCount !== 0) process.exit(1)'
+          test -f lintsure.sarif
+          ! grep -q "console.log" lintsure.sarif

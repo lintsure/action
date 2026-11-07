@@ -5,15 +5,19 @@ inputs:
   path: { description: Folder to check, default: "." }
   frameworks: { description: "Comma list: eu-ai-act,gdpr,soc2,iso-27001. Empty uses lintsure.config.yaml, or all available.", default: "" }
   fail-on: { description: "gap, partial, or none", default: "gap" }
+  new-only: { description: "When .lintsure/baseline.json exists, fail only on findings that are new since the baseline", default: "true" }
+  annotations: { description: "Show findings on the changed lines in the pull request (printed by the runner, no extra permissions)", default: "true" }
+  sarif: { description: "Also write lintsure.sarif for GitHub code scanning (upload it with github/codeql-action/upload-sarif)", default: "false" }
+  comment: { description: "Post or update one summary comment on the pull request. Needs pull-requests write permission. Sends rule names, file paths, line numbers and suggested fixes to GitHub, never code.", default: "false" }
   ref: { description: "Git ref of github.com/lintsure/lintsure to run (branch, tag or commit)", default: "main" }
 outputs:
   report: { description: Path to lintsure-report.json, value: "${{ steps.run.outputs.report }}" }
+  sarif: { description: Path to lintsure.sarif when sarif is true, value: "${{ steps.run.outputs.sarif }}" }
 runs:
   using: composite
   steps:
     - uses: actions/setup-node@v4
       with: { node-version: 22 }
-    # Build the engine from source, so the action works before and after the npm release.
     - shell: bash
       env: { LS_REF: "${{ inputs.ref }}" }
       run: |
@@ -27,11 +31,43 @@ runs:
         LS_PATH: ${{ inputs.path }}
         LS_FW: ${{ inputs.frameworks }}
         LS_FAIL: ${{ inputs.fail-on }}
+        LS_NEW: ${{ inputs.new-only }}
+        LS_ANN: ${{ inputs.annotations }}
+        LS_SARIF: ${{ inputs.sarif }}
       run: |
         args=(scan "$LS_PATH" --json)
         [ -n "$LS_FW" ] && args+=(--framework "$LS_FW")
         [ "$LS_FAIL" != "none" ] && args+=(--fail-on "$LS_FAIL")
+        [ "$LS_NEW" = "true" ] && args+=(--new-only)
+        [ "$LS_ANN" = "true" ] && args+=(--github)
+        [ "$LS_SARIF" = "true" ] && args+=(--sarif)
         set +e; node "$RUNNER_TEMP/lintsure/packages/cli/dist/src/index.js" "${args[@]}"; code=$?; set -e
         cat lintsure-report.md >> "$GITHUB_STEP_SUMMARY"
         echo "report=$PWD/lintsure-report.json" >> "$GITHUB_OUTPUT"
-        exit $code
+        [ "$LS_SARIF" = "true" ] && echo "sarif=$PWD/lintsure.sarif" >> "$GITHUB_OUTPUT"
+        echo "code=$code" >> "$GITHUB_OUTPUT"
+    - if: inputs.comment == 'true' && github.event_name == 'pull_request'
+      shell: bash
+      env:
+        GH_TOKEN: ${{ github.token }}
+        PR: ${{ github.event.pull_request.number }}
+        RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+      run: |
+        # Only rule names, file paths, line numbers and fixes go into the comment. No code.
+        node -e '
+          const r = require(process.cwd() + "/lintsure-report.json");
+          const open = r.findings.filter((f) => !f.accepted || f.accepted.expired);
+          const shown = r.baseline ? open.filter((f) => f.change === "new") : open;
+          const head = r.baseline
+            ? `**${r.baseline.newCount} new**, ${r.baseline.fixed.length} fixed, ${r.baseline.unchangedCount} unchanged since the baseline.`
+            : `${open.length} open finding${open.length === 1 ? "" : "s"}.`;
+          const rows = shown.slice(0, 20).map((f) => `| ${f.status} | \`${f.file}:${f.line}\` | ${f.title} | ${f.proposal.what} |`);
+          const body = ["### Lintsure", "", head, "",
+            ...(rows.length ? ["| Status | Where | Finding | Proposed change (needs your approval) |", "|---|---|---|---|", ...rows, ""] : ["Nothing new to review.", ""]),
+            shown.length > 20 ? `And ${shown.length - 20} more in the full report.` : "",
+            `[Full report](${process.env.RUN_URL})`, "",
+            "<sub>Lintsure is a readiness tool, not an audit, a certification or legal advice. A person decides on every change.</sub>"].join("\n");
+          require("fs").writeFileSync("lintsure-comment.md", body);'
+        gh pr comment "$PR" --edit-last --create-if-none --body-file lintsure-comment.md
+    - shell: bash
+      run: exit ${{ steps.run.outputs.code }}

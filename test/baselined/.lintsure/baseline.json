@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "created": "2026-11-07",
+  "findings": [
+    {
+      "ruleId": "pii.logged",
+      "file": "src/users.ts",
+      "fingerprint": "314d3eb05731bd93"
+    }
+  ]
+}
