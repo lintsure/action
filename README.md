@@ -16,7 +16,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: lintsure/action@v1
         with:
-          frameworks: gdpr,soc2   # optional
+          frameworks: gdpr,owasp-top10   # optional
           fail-on: gap            # gap | partial | none
 ```
 
@@ -25,7 +25,7 @@ jobs:
 | Input | Default | What it does |
 |---|---|---|
 | `path` | `.` | Folder to check |
-| `frameworks` | empty | `eu-ai-act`, `gdpr`, `soc2`, `iso-27001`, comma-separated. Empty uses `lintsure.config.yaml`, or all available. |
+| `frameworks` | empty | `eu-ai-act`, `gdpr`, `owasp-top10`, `owasp-llm`, `cwe-top25`, `cra`, comma-separated. Empty uses `lintsure.config.yaml`, or all available. |
 | `fail-on` | `gap` | `gap` fails on any Gap, `partial` on any Gap or Partial, `none` never fails |
 | `new-only` | `true` | When `.lintsure/baseline.json` exists, fail only on findings that are new since the baseline. Existing code doesn't block your first pull request. |
 | `annotations` | `true` | Show each open finding on its line in the pull request. The runner prints these; no extra permissions. |

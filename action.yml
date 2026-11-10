@@ -1,9 +1,9 @@
 name: Lintsure
-description: Readiness checks for the code your AI writes (EU AI Act, GDPR, SOC 2, ISO 27001). Never uploads your code. Not an audit or legal advice.
+description: Readiness checks for the code your AI writes (EU AI Act, GDPR, OWASP, CWE, Cyber Resilience Act). Never uploads your code. Not an audit or legal advice.
 branding: { icon: check-circle, color: green }
 inputs:
   path: { description: Folder to check, default: "." }
-  frameworks: { description: "Comma list: eu-ai-act,gdpr,soc2,iso-27001. Empty uses lintsure.config.yaml, or all available.", default: "" }
+  frameworks: { description: "Comma list: eu-ai-act, gdpr, owasp-top10, owasp-llm, cwe-top25, cra. Empty uses lintsure.config.yaml, or all available.", default: "" }
   fail-on: { description: "gap, partial, or none", default: "gap" }
   new-only: { description: "When .lintsure/baseline.json exists, fail only on findings that are new since the baseline", default: "true" }
   annotations: { description: "Show findings on the changed lines in the pull request (printed by the runner, no extra permissions)", default: "true" }
