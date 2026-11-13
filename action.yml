@@ -4,6 +4,9 @@ branding: { icon: check-circle, color: green }
 inputs:
   path: { description: Folder to check, default: "." }
   frameworks: { description: "Comma list: eu-ai-act, gdpr, owasp-top10, owasp-llm, cwe-top25, cra. Empty uses lintsure.config.yaml, or all available.", default: "" }
+  preset: { description: "security (OWASP Top 10, CWE Top 25), security-privacy (adds GDPR) or all. Used when frameworks is empty and there is no lintsure.config.yaml.", default: "" }
+  changed-only: { description: "On pull requests, list only findings on lines the pull request changed. auto = on for pull_request events.", default: "auto" }
+  show-all: { description: "Also list medium-confidence findings, which are held back by default", default: "false" }
   fail-on: { description: "gap, partial, or none", default: "gap" }
   new-only: { description: "When .lintsure/baseline.json exists, fail only on findings that are new since the baseline", default: "true" }
   annotations: { description: "Show findings on the changed lines in the pull request (printed by the runner, no extra permissions)", default: "true" }
@@ -34,9 +37,26 @@ runs:
         LS_NEW: ${{ inputs.new-only }}
         LS_ANN: ${{ inputs.annotations }}
         LS_SARIF: ${{ inputs.sarif }}
+        LS_PRESET: ${{ inputs.preset }}
+        LS_CHANGED: ${{ inputs.changed-only }}
+        LS_ALL: ${{ inputs.show-all }}
+        LS_EVENT: ${{ github.event_name }}
+        LS_BASE: ${{ github.base_ref }}
       run: |
         args=(scan "$LS_PATH" --json)
+        if [ -z "$LS_FW" ] && [ -n "$LS_PRESET" ] && [ ! -f "$LS_PATH/lintsure.config.yaml" ]; then
+          case "$LS_PRESET" in
+            security) LS_FW="owasp-top10,cwe-top25" ;;
+            security-privacy) LS_FW="owasp-top10,cwe-top25,gdpr" ;;
+            all) LS_FW="" ;;
+            *) echo "preset must be security, security-privacy or all, not $LS_PRESET"; exit 2 ;;
+          esac
+        fi
         [ -n "$LS_FW" ] && args+=(--framework "$LS_FW")
+        [ "$LS_ALL" = "true" ] && args+=(--all)
+        if [ "$LS_CHANGED" = "true" ] || { [ "$LS_CHANGED" = "auto" ] && [ "$LS_EVENT" = "pull_request" ] && [ -n "$LS_BASE" ]; }; then
+          git fetch --quiet --no-tags --depth=1 origin "$LS_BASE" && args+=(--diff FETCH_HEAD) || echo "Could not fetch $LS_BASE; checking every line instead."
+        fi
         [ "$LS_FAIL" != "none" ] && args+=(--fail-on "$LS_FAIL")
         [ "$LS_NEW" = "true" ] && args+=(--new-only)
         [ "$LS_ANN" = "true" ] && args+=(--github)
