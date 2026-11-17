@@ -12,7 +12,7 @@ inputs:
   annotations: { description: "Show findings on the changed lines in the pull request (printed by the runner, no extra permissions)", default: "true" }
   sarif: { description: "Also write lintsure.sarif for GitHub code scanning (upload it with github/codeql-action/upload-sarif)", default: "false" }
   comment: { description: "Post or update one summary comment on the pull request. Needs pull-requests write permission. Sends rule names, file paths, line numbers and suggested fixes to GitHub, never code.", default: "false" }
-  ref: { description: "Git ref of github.com/lintsure/lintsure to run (branch, tag or commit)", default: "main" }
+  ref: { description: "Git ref of github.com/lintsure/lintsure to run (branch, tag or commit). Defaults to the latest release tag, so results only change when you update it", default: "v0.3.11" }
 outputs:
   report: { description: Path to lintsure-report.json, value: "${{ steps.run.outputs.report }}" }
   sarif: { description: Path to lintsure.sarif when sarif is true, value: "${{ steps.run.outputs.sarif }}" }
