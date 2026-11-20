@@ -1,0 +1,5 @@
+# This fixture tests the baseline, not repo hygiene: a two-file project has no SBOM, Dependabot or SECURITY.md by design.
+rules:
+  repo.no-sbom: off
+  repo.no-dependency-updates: off
+  repo.no-security-policy: off
