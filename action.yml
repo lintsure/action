@@ -3,16 +3,17 @@ description: Readiness checks for the code your AI writes (EU AI Act, GDPR, OWAS
 branding: { icon: check-circle, color: green }
 inputs:
   path: { description: Folder to check, default: "." }
-  frameworks: { description: "Comma list: eu-ai-act, gdpr, owasp-top10, owasp-llm, cwe-top25, cra. Empty uses lintsure.config.yaml, or all available.", default: "" }
+  frameworks: { description: "Comma list: eu-ai-act, gdpr, owasp-top10, owasp-api, owasp-llm, owasp-ast, cwe-top25, cra. Empty uses lintsure.config.yaml, or all available.", default: "" }
   preset: { description: "security (OWASP Top 10, CWE Top 25), security-privacy (adds GDPR) or all. Used when frameworks is empty and there is no lintsure.config.yaml.", default: "" }
   changed-only: { description: "On pull requests, list only findings on lines the pull request changed. auto = on for pull_request events.", default: "auto" }
   show-all: { description: "Also list medium-confidence findings, which are held back by default", default: "false" }
   fail-on: { description: "gap, partial, or none", default: "gap" }
+  observe: { description: "With fail-on: report when the run would have failed, and pass anyway. For watching the check before it blocks pull requests", default: "false" }
   new-only: { description: "When .lintsure/baseline.json exists, fail only on findings that are new since the baseline", default: "true" }
   annotations: { description: "Show findings on the changed lines in the pull request (printed by the runner, no extra permissions)", default: "true" }
   sarif: { description: "Also write lintsure.sarif for GitHub code scanning (upload it with github/codeql-action/upload-sarif)", default: "false" }
   comment: { description: "Post or update one summary comment on the pull request. Needs pull-requests write permission. Sends rule names, file paths, line numbers and suggested fixes to GitHub, never code.", default: "false" }
-  ref: { description: "Git ref of github.com/lintsure/lintsure to run (branch, tag or commit). Defaults to the latest release tag, so results only change when you update it", default: "v0.3.11" }
+  ref: { description: "Git ref of github.com/lintsure/lintsure to run (branch, tag or commit). Defaults to the latest release tag, so results only change when you update it", default: "v0.3.16" }
 outputs:
   report: { description: Path to lintsure-report.json, value: "${{ steps.run.outputs.report }}" }
   sarif: { description: Path to lintsure.sarif when sarif is true, value: "${{ steps.run.outputs.sarif }}" }
@@ -35,6 +36,7 @@ runs:
         LS_FW: ${{ inputs.frameworks }}
         LS_FAIL: ${{ inputs.fail-on }}
         LS_NEW: ${{ inputs.new-only }}
+        LS_OBS: ${{ inputs.observe }}
         LS_ANN: ${{ inputs.annotations }}
         LS_SARIF: ${{ inputs.sarif }}
         LS_PRESET: ${{ inputs.preset }}
@@ -59,6 +61,7 @@ runs:
         fi
         [ "$LS_FAIL" != "none" ] && args+=(--fail-on "$LS_FAIL")
         [ "$LS_NEW" = "true" ] && args+=(--new-only)
+        [ "$LS_OBS" = "true" ] && [ "$LS_FAIL" != "none" ] && args+=(--observe)
         [ "$LS_ANN" = "true" ] && args+=(--github)
         [ "$LS_SARIF" = "true" ] && args+=(--sarif)
         set +e; node "$RUNNER_TEMP/lintsure/packages/cli/dist/src/index.js" "${args[@]}"; code=$?; set -e

@@ -30,11 +30,12 @@ jobs:
 | `preset` | empty | `security`, `security-privacy` or `all`. Used when `frameworks` is empty and there is no `lintsure.config.yaml`. |
 | `changed-only` | `auto` | On `pull_request` events, list only findings on lines the pull request changed. The action fetches the base branch for this. |
 | `show-all` | `false` | Also list medium-confidence findings, which are held back by default. |
+| `observe` | `false` | With `fail-on`: report when the run would have failed, and pass anyway. Use it to watch the check for a while before it blocks pull requests. |
 | `new-only` | `true` | When `.lintsure/baseline.json` exists, fail only on findings that are new since the baseline. Existing code doesn't block your first pull request. |
 | `annotations` | `true` | Show each open finding on its line in the pull request. The runner prints these; no extra permissions. |
 | `sarif` | `false` | Also write `lintsure.sarif`, for GitHub code scanning. |
 | `comment` | `false` | Post one summary comment on the pull request and update it on later runs. See below. |
-| `ref` | `v0.3.11` | Which version of [lintsure/lintsure](https://github.com/lintsure/lintsure) to build and run (branch, tag or commit). Defaults to the latest release tag; use `main` for unreleased changes, or a commit for fully repeatable results. |
+| `ref` | `v0.3.16` | Which version of [lintsure/lintsure](https://github.com/lintsure/lintsure) to build and run (branch, tag or commit). Defaults to the latest release tag; use `main` for unreleased changes, or a commit for fully repeatable results. |
 
 Each rule is high or medium confidence, set from hand-checked samples on 139 public repositories. By default only high-confidence findings are listed and the rest are counted. Set `show-all: true` to list them all. Every report ends with a Not covered section that says what the run didn't check.
 
