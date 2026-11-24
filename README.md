@@ -25,7 +25,7 @@ jobs:
 | Input | Default | What it does |
 |---|---|---|
 | `path` | `.` | Folder to check |
-| `frameworks` | empty | `eu-ai-act`, `gdpr`, `owasp-top10`, `owasp-llm`, `cwe-top25`, `cra`, comma-separated. Empty uses `lintsure.config.yaml`, or all available. |
+| `frameworks` | empty | `eu-ai-act`, `gdpr`, `owasp-top10`, `owasp-api`, `owasp-llm`, `owasp-ast`, `cwe-top25`, `cra`, comma-separated. Empty uses `lintsure.config.yaml`, or all available. |
 | `fail-on` | `gap` | `gap` fails on any Gap, `partial` on any Gap or Partial, `none` never fails |
 | `preset` | empty | `security`, `security-privacy` or `all`. Used when `frameworks` is empty and there is no `lintsure.config.yaml`. |
 | `changed-only` | `auto` | On `pull_request` events, list only findings on lines the pull request changed. The action fetches the base branch for this. |
