@@ -15,7 +15,7 @@ Agents write code fast, and some of it carries problems a quick review misses: a
 ## What you get
 
 - **Findings on the changed lines.** Each one shows on its line in the pull request, with what is wrong and a proposed fix. The full report goes into the job summary.
-- **114 rules** for the problems AI-written code often has: secrets in source, open databases, personal data in logs, unsafe agent settings, risky skills and tool servers.
+- **116 rules** for the problems AI-written code often has: secrets in source, open databases, personal data in logs, unsafe agent settings, risky skills and tool servers.
 - **Eight frameworks.** Each finding is mapped to the controls it touches in the OWASP Top 10, the OWASP API Security Top 10, the OWASP LLM Top 10, the OWASP Agentic Skills Top 10, the CWE Top 25, GDPR, the EU AI Act and the EU Cyber Resilience Act.
 - **A gate you control.** Fail the job on a clear problem, on anything unsure, or never. Old findings don't block your first pull request.
 - **The same answer every time.** The check is a fixed rule engine, not a language model. Same code in, same result out.
@@ -110,7 +110,7 @@ More in [lintsure/lintsure](https://github.com/lintsure/lintsure) and [lintsure/
 | `annotations` | `true` | Show each open finding on its line in the pull request. The runner prints these; no extra permissions. |
 | `sarif` | `false` | Also write `lintsure.sarif`, for GitHub code scanning. |
 | `comment` | `false` | Post one summary comment on the pull request and update it on later runs. See below. |
-| `ref` | `v0.3.16` | Which version of [lintsure/lintsure](https://github.com/lintsure/lintsure) to build and run (branch, tag or commit). Defaults to the latest release tag; use `main` for unreleased changes, or a commit for fully repeatable results. |
+| `ref` | `v0.3.17` | Which version of [lintsure/lintsure](https://github.com/lintsure/lintsure) to build and run (branch, tag or commit). Defaults to the latest release tag; use `main` for unreleased changes, or a commit for fully repeatable results. |
 
 Each rule is high or medium confidence, set from findings reviewed one by one against the code on public projects. See [the field test](https://lintsure.com/field-test). By default only high-confidence findings are listed and the rest are counted. Set `show-all: true` to list them all. Every report ends with a Not covered section that says what the run didn't check.
 
@@ -136,6 +136,15 @@ permissions:
   contents: read
   pull-requests: write
 ```
+
+### Let your agent work through the comment
+
+Each row of the comment is a claim an agent can check: where, what, and the proposed change, with the rule's name so the agent can look it up. Some coding agents can watch a pull request and act on comments from a bot you name. The comment is posted by the GitHub Actions bot, under your workflow's own token.
+
+Two things to know before you rely on it:
+
+- Treat it as a claim to check, not an order. A finding marked Partial says what Lintsure couldn't see, and the agent should read the code before changing anything.
+- Some agents commit and push without running git hooks. A check that lives only in a pre-commit hook is skipped by those commits, which is why this action runs in CI.
 
 ## Code scanning (optional)
 

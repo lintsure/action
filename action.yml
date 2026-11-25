@@ -13,7 +13,7 @@ inputs:
   annotations: { description: "Show findings on the changed lines in the pull request (printed by the runner, no extra permissions)", default: "true" }
   sarif: { description: "Also write lintsure.sarif for GitHub code scanning (upload it with github/codeql-action/upload-sarif)", default: "false" }
   comment: { description: "Post or update one summary comment on the pull request. Needs pull-requests write permission. Sends rule names, file paths, line numbers and suggested fixes to GitHub, never code.", default: "false" }
-  ref: { description: "Git ref of github.com/lintsure/lintsure to run (branch, tag or commit). Defaults to the latest release tag, so results only change when you update it", default: "v0.3.16" }
+  ref: { description: "Git ref of github.com/lintsure/lintsure to run (branch, tag or commit). Defaults to the latest release tag, so results only change when you update it", default: "v0.3.17" }
 outputs:
   report: { description: Path to lintsure-report.json, value: "${{ steps.run.outputs.report }}" }
   sarif: { description: Path to lintsure.sarif when sarif is true, value: "${{ steps.run.outputs.sarif }}" }
@@ -84,7 +84,7 @@ runs:
           const head = r.baseline
             ? `**${r.baseline.newCount} new**, ${r.baseline.fixed.length} fixed, ${r.baseline.unchangedCount} unchanged since the baseline.`
             : `${open.length} open finding${open.length === 1 ? "" : "s"}.`;
-          const rows = shown.slice(0, 20).map((f) => `| ${f.status} | \`${f.file}:${f.line}\` | ${f.title} | ${f.proposal.what} |`);
+          const rows = shown.slice(0, 20).map((f) => `| ${f.status} | \`${f.file}:${f.line}\` | ${f.title} (\`${f.ruleId}\`) | ${f.proposal.what} |`);
           const body = ["### Lintsure", "", head, "",
             ...(rows.length ? ["| Status | Where | Finding | Proposed change (needs your approval) |", "|---|---|---|---|", ...rows, ""] : ["Nothing new to review.", ""]),
             shown.length > 20 ? `And ${shown.length - 20} more in the full report.` : "",
