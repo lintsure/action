@@ -3,7 +3,7 @@
 [![Version](https://img.shields.io/github/v/release/lintsure/action?label=version&color=6289FE)](https://github.com/lintsure/action/releases)
 [![GitHub Marketplace](https://img.shields.io/badge/GitHub%20Marketplace-Lintsure-141413?logo=github)](https://github.com/marketplace/actions/lintsure)
 [![Self-test](https://github.com/lintsure/action/actions/workflows/self-test.yml/badge.svg)](https://github.com/lintsure/action/actions/workflows/self-test.yml)
-[![License: Apache-2.0](https://img.shields.io/badge/license-Apache--2.0-141413)](LICENSE)
+[![License: Apache-2.0](https://img.shields.io/badge/license-Apache--2.0-141413)](https://github.com/lintsure/action/blob/main/LICENSE)
 [![Engine on npm](https://img.shields.io/npm/v/lintsure?label=engine&color=141413)](https://www.npmjs.com/package/lintsure)
 [![Listed by OWASP](https://img.shields.io/badge/listed%20by-OWASP-0B6E4F)](https://owasp.org/www-community/Source_Code_Analysis_Tools)
 [![Docs](https://img.shields.io/badge/docs-lintsure.com-0B6E4F)](https://lintsure.com/docs/github-action)
@@ -30,6 +30,8 @@ Add this file as `.github/workflows/lintsure.yml`:
 ```yaml
 name: lintsure
 on: [pull_request]
+permissions:
+  contents: read
 jobs:
   check:
     runs-on: ubuntu-latest
@@ -53,6 +55,33 @@ Two settings let a team switch it on safely:
 
 - `observe: true` reports when a run would have failed and lets it pass. Watch it for a week, then turn it off.
 - A baseline, made once with `npx lintsure baseline`, means only findings that are new since then can fail a job.
+
+## Permissions
+
+The check needs to read your code and nothing else:
+
+```yaml
+permissions:
+  contents: read
+```
+
+Two optional features need one more line each, shown in their sections below: `pull-requests: write` for the summary comment, and `security-events: write` to send results to code scanning.
+
+## Versions
+
+| You write | You get |
+|---|---|
+| `lintsure/action@v1` | The latest 1.x release. New checks arrive without a change on your side. |
+| `lintsure/action@v1.0.1` | That exact release, until you change it. |
+| `lintsure/action@<commit SHA>` | That exact commit. The strictest choice, and what GitHub advises for third-party actions. |
+
+A new release can add checks, so a pinned version keeps results steady and `v1` keeps them current. Each release says which engine version it runs.
+
+## What it needs
+
+- A Linux runner. It is tested on `ubuntu-latest`, and it sets up Node.js 22 itself.
+- `actions/checkout` before it, so there is code to read.
+- No secrets, no account and no API key.
 
 ## Other ways to use Lintsure
 
@@ -134,5 +163,7 @@ The action builds the Lintsure engine from source at `ref`, then runs the CLI on
 ⭐ Star [lintsure/lintsure](https://github.com/lintsure/lintsure), share it with your team, [send a review](https://lintsure.com/review), or [request a demo](https://lintsure.com/demo) of the team platform.
 
 Questions: [hello@lintsure.com](mailto:hello@lintsure.com) · Support: [support@lintsure.com](mailto:support@lintsure.com) · [Docs](https://lintsure.com/docs/github-action)
+
+Security reports: see [SECURITY.md](https://github.com/lintsure/action/blob/main/SECURITY.md).
 
 Apache-2.0.
