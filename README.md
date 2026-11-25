@@ -139,7 +139,7 @@ permissions:
 
 ### Let your agent work through the comment
 
-Each row of the comment is a claim an agent can check: where, what, and the proposed change, with the rule's name so the agent can look it up. Some coding agents can watch a pull request and act on comments from a bot you name. The comment is posted by the GitHub Actions bot, under your workflow's own token.
+Each row of the comment is a claim an agent can check: where, what, and the proposed change, with the rule's name so the agent can look it up. Some coding agents can watch a pull request and act on comments from a bot you name. The comment is posted by the GitHub Actions bot, under your workflow's own token. In Claude Code that is `/ship +github-actions` or `/steward +github-actions`: bots are named without the `[bot]` ending. We took this from Claude Code's documentation and have not run it ourselves yet.
 
 Two things to know before you rely on it:
 
