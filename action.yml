@@ -1,6 +1,6 @@
 name: Lintsure
-description: Readiness checks for the code your AI writes (EU AI Act, GDPR, OWASP, CWE, Cyber Resilience Act). Never uploads your code. Not an audit or legal advice.
-branding: { icon: check-circle, color: green }
+description: Checks the code your AI agents write on every pull request, with findings on the changed lines. Uploads nothing.
+branding: { icon: triangle, color: blue }
 inputs:
   path: { description: Folder to check, default: "." }
   frameworks: { description: "Comma list: eu-ai-act, gdpr, owasp-top10, owasp-api, owasp-llm, owasp-ast, cwe-top25, cra. Empty uses lintsure.config.yaml, or all available.", default: "" }
